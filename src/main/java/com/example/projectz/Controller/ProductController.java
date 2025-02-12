@@ -1,14 +1,29 @@
 package com.example.projectz.Controller;
 
 
+import com.example.projectz.Model.Product;
+import com.example.projectz.Service.FakeStoreProductService;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 public class ProductController {
 
-    @GetMapping("/products/{id}")
-    public void getProductById(@PathVariable("id") Integer id) { //path variable way to get params
+    private FakeStoreProductService service;
 
+    // DEPENDENCY INJECTION (CONSTRUCTOR) IS BEING USED.
+    public ProductController(FakeStoreProductService inputService) {
+        this.service = inputService; //giving value to the current instance of the private class
+    }
+
+    @GetMapping("/products/{id}")
+    public Product getProductById(@PathVariable("id") Integer id) { //path variable way to get params
+        //validations
+        if(id == null){
+            throw new IllegalArgumentException("Id cannot be null");
+        }
+
+        return service.getProductById(id);
     }
 
 
