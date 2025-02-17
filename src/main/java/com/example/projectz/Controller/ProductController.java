@@ -1,9 +1,14 @@
 package com.example.projectz.Controller;
 
 
+import com.example.projectz.DTO.ProductRequestDTO;
+import com.example.projectz.Exception.ProductNotFoundException;
 import com.example.projectz.Model.Product;
 import com.example.projectz.Service.FakeStoreProductService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -17,25 +22,48 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public Product getProductById(@PathVariable("id") Integer id) { //path variable way to get params
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Integer id) throws ProductNotFoundException {
         //validations
-        if(id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+        if(id <= 0){
+            throw new IllegalArgumentException("Invalid product id: "+ id);
         }
 
-        return service.getProductById(id);
-    }
+        //fetch product
+        Product product = service.getProductById(id); // service = new SelfProductService()
 
-
-    @PostMapping("/products")
-    public void createProduct(){
-
+        if(product == null){
+            throw new ProductNotFoundException("Product with ID "+ id + "not found");
+        }
+        return ResponseEntity.ok(product);
     }
 
 
     @GetMapping("/products")
-    public void getallProducts(){
+    public ResponseEntity<List<Product>> getAllProducts(){
+        List<Product> products = service.getAllProducts();
+        //validations
+        if(products == null){
+            throw new IllegalArgumentException("Products cannot be null");
+        }
+        //Calling Service layer
 
+        return ResponseEntity.ok(products); //httpStatus code is 200.
+    }
+
+
+    @PostMapping("/products")
+    public ResponseEntity<Product> createProduct(@RequestBody ProductRequestDTO request) {
+        //Validations
+        if (request.getDescription() == null){
+            throw new IllegalArgumentException("Description cannot be null");
+        }
+        if(request.getTitle() == null) {
+            throw new IllegalArgumentException("Title cannot be null");
+        }
+
+        Product product = service.createProduct(request.getTitle(), request.getImageURL(), request.getCategory().getTitle(), request.getDescription());
+
+        return ResponseEntity.ok(product);
     }
 
 
@@ -43,6 +71,8 @@ public class ProductController {
     public void updateProduct(@PathVariable("id") Integer id){
 
     }
+
+
 
 
     @DeleteMapping("/products/{id}")
